@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <meta charset="UTF-8">
+    <title>Simple Flask Chatbot</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <style>
+      body {
+        padding-top: 60px;
+      }
+      .message-list {
+        margin-top: 30px;
+      }
+      .message {
+        margin-bottom: 10px;
+      }
+      .user-message {
+        text-align: right;
+      }
+      .server-message {
+        text-align: left;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+      <a class="navbar-brand" href="#">Simple Flask Chatbot</a>
+    </nav>
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-9">
+          <ul id="message-list" class="list-unstyled">
+          </ul>
+          <div class="form-group">
+            <input type="text" id="user-input" class="form-control" placeholder="Type your message here">
+          </div>
+        </div>
+        <div class="col-sm-3">
+          <p>Chatbot is under construction</p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-9">
+          <button type="button" class="btn btn-primary" onclick="send_message()">Send</button>
+        </div>
+      </div>
+    </div>
+
+     <hr>
+        <button id="ingest-button" type="button" class="btn btn-primary" data-toggle="modal" data-target="#ingest-dialog">Ingest</button>
+              <hr>
+        <button id="load-button" type="button" class="btn btn-primary" data-toggle="modal" data-target="#load-dialog">Load</button>
+      
+
+    <div class="modal fade" id="ingest-dialog" tabindex="-1" role="dialog" aria-labelledby="ingest-dialog-label" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="ingest-dialog-label">Ingest Directories</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="ingest-dir1">Ingest Directory 1:</label>
+              <input type="file" id="ingest-dir1" class="form-control" placeholder="Enter directory path">
+            </div>
+            <div class="form-group">
+              <label for="ingest-dir2">Ingest Directory 2:</label>
+              <input type="file" id="ingest-dir2" class="form-control" placeholder="Enter directory path">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="ingest_directories()">OK</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal fade" id="load-dialog" tabindex="-1" role="dialog" aria-labelledby="load-dialog-label" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="load-dialog-label">Load Directory</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+                <label for="server-dir-list">Server Directory List:</label>
+                <div id="server-dir-list" class="list-group"></div>
+              <label for="load-dir">Directory:</label>
+              <input type="file" id="load-dir" class="form-control" placeholder="Enter directory path">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="load_directory()">OK</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js" integrity="sha384-eMNCOe7tC1doHpGoJtKh7z7lGz7fuP4F8nfdFvAOA6Gg/z6Y5J6XqqyGXYM2ntX5" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    
+
+  </body>
+  <script>
+    function send_message() {
+  var user_input = document.getElementById("user-input").value;
+  append_message("You", user_input, "user-message");
+
+  // Set up an AJAX POST request
+  var xhr = new XMLHttpRequest();
+  xhr.open("POST", "/submit", true);
+  xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+  xhr.setRequestHeader("X-CSRFToken", document.querySelector('meta[name="csrf-token"]').content);
+
+  xhr.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      var server_response = this.responseText;
+      append_message("Server", server_response, "server-message");
+    }
+  };
+
+  // Send the user_input as POST data
+  xhr.send("user_input=" + encodeURIComponent(user_input));
+}
+
+
+    function append_message(sender, message, css_class) {
+      var message_list = document.getElementById("message-list");
+      var new_message = document.createElement("li");
+      new_message.innerHTML = sender + ": " + message;
+      new_message.classList.add("message", css_class);
+      message_list.appendChild(new_message);
+      document.getElementById("user-input").value = "";
+    }
+    document.getElementById('user-input').addEventListener('keydown', function(event) {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    document.querySelector('.btn-primary').click();
+  }
+});
+
+$('#load-dialog').on('show.bs.modal', function() {
+  fetch('/list_directories')
+    .then(response => response.json())
+    .then(directories => {
+      let dirList = document.getElementById('server-dir-list');
+      dirList.innerHTML = ''; // Clear the list
+
+      directories.forEach(directory => {
+        let dirItem = document.createElement('button');
+        dirItem.type = 'button';
+        dirItem.classList.add('list-group-item', 'list-group-item-action');
+        dirItem.textContent = directory;
+        dirItem.onclick = function() {
+          // Perform your desired action with the selected directory
+          console.log('Selected directory:', directory);
+        };
+        dirList.appendChild(dirItem);
+      });
+    })
+    .catch(error => console.error('Error fetching directories:', error));
+});
+
+
+  </script>
+  
+</html>
