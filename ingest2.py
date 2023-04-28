@@ -1,8 +1,10 @@
 def ingest(text_corpus, target_dir, chunk_size=1000, chunk_overlap=0): 
 
     # %%
-    from langchain.document_loaders import TextLoader
-    loader = TextLoader(text_corpus)
+    from langchain.document_loaders import PyPDFLoader, DirectoryLoader
+    loader = DirectoryLoader(path=text_corpus, glob="**/*.pdf", loader_cls=PyPDFLoader, show_progress=True)
+    
+    # PyPDFLoader(text_corpus)
 
     documents = loader.load()
 
@@ -12,12 +14,12 @@ def ingest(text_corpus, target_dir, chunk_size=1000, chunk_overlap=0):
     texts = text_splitter.split_documents(documents)
     # %%
     from langchain.embeddings import OpenAIEmbeddings
-    embeddings = OpenAIEmbeddings()
-
+   
     # %%
     from langchain.vectorstores import Chroma
 
     #db = Chroma.from_documents(texts, embeddings)
     db = Chroma(persist_directory=str(target_dir), embedding_function=OpenAIEmbeddings())
+    db.add_documents(documents)
 
     return db
