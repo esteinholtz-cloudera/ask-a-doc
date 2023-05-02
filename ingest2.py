@@ -4,14 +4,12 @@ def ingest(text_corpus, target_dir, chunk_size=1000, chunk_overlap=0):
     from langchain.document_loaders import PyPDFLoader, DirectoryLoader
     loader = DirectoryLoader(path=text_corpus, glob="**/*.pdf", loader_cls=PyPDFLoader, show_progress=True)
     
-    # PyPDFLoader(text_corpus)
-
     documents = loader.load()
 
     # %%
-    from langchain.text_splitter import CharacterTextSplitter
-    text_splitter = CharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
-    texts = text_splitter.split_documents(documents)
+    #  from langchain.text_splitter import CharacterTextSplitter
+    #  text_splitter = CharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+    #  texts = text_splitter.split_documents(documents)
     # %%
     from langchain.embeddings import OpenAIEmbeddings
    
