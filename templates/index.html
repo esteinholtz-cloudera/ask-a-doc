@@ -126,7 +126,7 @@
   xhr.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
       var server_response = this.responseText;
-      append_message("Server", server_response, "server-message");
+      append_message("Document", server_response, "server-message");
     }
   };
 
