@@ -6,7 +6,7 @@ import os
 from langchain.document_loaders import TextLoader
 
 #initialize
-LOAD_TEXT=(os.getenv('LOAD_TEXT'))
+LOAD_TEXT=str((os.getenv('LOAD_TEXT')))
 if os.path.isfile(LOAD_TEXT):
     loader = TextLoader(LOAD_TEXT)
     from langchain.indexes import VectorstoreIndexCreator
